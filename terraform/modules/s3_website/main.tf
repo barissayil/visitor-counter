@@ -1,5 +1,9 @@
+locals {
+  unique_id = substr(uuid(), 0, 8)
+}
+
 resource "aws_s3_bucket" "website" {
-  bucket = "visitor-counter-${var.unique_id}"
+  bucket = "visitor-counter-${local.unique_id}"
 }
 
 resource "aws_s3_bucket_public_access_block" "example" {

@@ -1,8 +1,3 @@
-variable "unique_id" {
-  description = "Unique ID for naming the bucket"
-  type        = string
-}
-
 variable "index_source" {
   description = "Path to index.html source"
   type        = string

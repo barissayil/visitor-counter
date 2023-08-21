@@ -2,10 +2,6 @@ provider "aws" {
   region = var.region
 }
 
-locals {
-  unique_id = substr(uuid(), 0, 8)
-}
-
 data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "../lambda/"
@@ -22,7 +18,6 @@ data "template_file" "script_js" {
 
 module "s3_website" {
   source         = "./modules/s3_website"
-  unique_id      = local.unique_id
   index_source   = "../website/index.html"
   css_source     = "../website/styles.css"
   script_content = data.template_file.script_js.rendered
