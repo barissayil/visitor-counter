@@ -1,9 +1,11 @@
-locals {
-  unique_id = substr(uuid(), 0, 8)
+resource "random_string" "s3_bucket_sufix" {
+  length  = 8
+  special = false
+  upper   = false
 }
 
 resource "aws_s3_bucket" "website" {
-  bucket = "visitor-counter-${local.unique_id}"
+  bucket = "visitor-counter-${random_string.s3_bucket_sufix.result}"
 }
 
 resource "aws_s3_bucket_public_access_block" "example" {
