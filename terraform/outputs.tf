@@ -3,5 +3,5 @@ output "website_url" {
 }
 
 output "api_endpoint" {
-  value = "https://${aws_api_gateway_rest_api.visitor_counter_api.id}.execute-api.${var.region}.amazonaws.com/default/count"
+  value = "https://${module.api_gateway.api_id}.execute-api.${var.region}.amazonaws.com/default/count"
 }
