@@ -14,17 +14,20 @@ def handler(event, context):
     }
 
     try:
-        response = table.get_item(Key={"id": "visitor_count"})
+        response = table.update_item(
+            Key={"id": "visitor_count"},
+            UpdateExpression="SET #count = if_not_exists(#count, :zero) + :increment_value",
+            ExpressionAttributeNames={"#count": "count"},
+            ExpressionAttributeValues={":increment_value": 1, ":zero": 0},
+            ReturnValues="UPDATED_NEW",
+        )
 
-        count = int(response.get("Item", {}).get("count", 0))
-        new_count = count + 1
-
-        table.put_item(Item={"id": "visitor_count", "count": new_count})
+        visitor_count = int(response["Attributes"]["count"])
 
         return {
             "statusCode": 200,
             "headers": cors_headers,
-            "body": json.dumps({"visitor_count": new_count}),
+            "body": json.dumps({"visitor_count": visitor_count}),
         }
 
     except Exception as e:
