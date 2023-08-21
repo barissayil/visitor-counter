@@ -14,15 +14,9 @@ module "s3_website" {
   script_content = data.template_file.script_js.rendered
 }
 
-resource "aws_dynamodb_table" "visitor_count" {
-  name         = "visitor_count"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "id"
-
-  attribute {
-    name = "id"
-    type = "S"
-  }
+module "dynamodb_table" {
+  source     = "./modules/dynamodb_table"
+  table_name = "visitor_count"
 }
 
 resource "aws_iam_role" "lambda_execution_role" {
@@ -56,7 +50,7 @@ resource "aws_iam_policy" "dynamodb_access" {
           "dynamodb:UpdateItem"
         ],
         Effect   = "Allow",
-        Resource = aws_dynamodb_table.visitor_count.arn
+        Resource = module.dynamodb_table.dynamodb_table_arn
       }
     ]
   })
