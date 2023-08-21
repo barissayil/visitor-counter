@@ -6,6 +6,14 @@ locals {
   unique_id = substr(uuid(), 0, 8)
 }
 
+module "s3_website" {
+  source         = "./modules/s3_website"
+  unique_id      = local.unique_id
+  index_source   = "../website/index.html"
+  css_source     = "../website/styles.css"
+  script_content = data.template_file.script_js.rendered
+}
+
 resource "aws_dynamodb_table" "visitor_count" {
   name         = "visitor_count"
   billing_mode = "PAY_PER_REQUEST"
@@ -16,28 +24,6 @@ resource "aws_dynamodb_table" "visitor_count" {
     type = "S"
   }
 }
-
-resource "aws_s3_bucket" "website" {
-  bucket = "visitor-counter-${local.unique_id}"
-}
-
-resource "aws_s3_bucket_public_access_block" "example" {
-  bucket = aws_s3_bucket.website.id
-
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
-}
-
-resource "aws_s3_bucket_website_configuration" "website_config" {
-  bucket = aws_s3_bucket.website.id
-
-  index_document {
-    suffix = "index.html"
-  }
-}
-
 
 resource "aws_iam_role" "lambda_execution_role" {
   name = "visitor_counter_lambda_execution_role"
@@ -207,27 +193,6 @@ resource "aws_api_gateway_integration_response" "get" {
   depends_on = [aws_api_gateway_integration.lambda_integration]
 }
 
-resource "aws_s3_object" "website_index" {
-  bucket       = aws_s3_bucket.website.bucket
-  key          = "index.html"
-  source       = "../website/index.html"
-  content_type = "text/html"
-}
-
-resource "aws_s3_object" "website_css" {
-  bucket       = aws_s3_bucket.website.bucket
-  key          = "styles.css"
-  source       = "../website/styles.css"
-  content_type = "text/css"
-}
-
-resource "aws_s3_object" "website_js" {
-  bucket       = aws_s3_bucket.website.bucket
-  key          = "script.js"
-  content      = data.template_file.script_js.rendered
-  content_type = "application/javascript"
-}
-
 data "template_file" "script_js" {
   template = file("../website/script.js.tpl")
 
@@ -235,21 +200,3 @@ data "template_file" "script_js" {
     api_endpoint = aws_api_gateway_deployment.visitor_counter_deployment.invoke_url
   }
 }
-
-resource "aws_s3_bucket_policy" "website_policy" {
-  bucket = aws_s3_bucket.website.bucket
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Sid       = "PublicRead",
-        Effect    = "Allow",
-        Principal = "*",
-        Action    = "s3:GetObject",
-        Resource  = "${aws_s3_bucket.website.arn}/*"
-      }
-    ]
-  })
-}
-

@@ -1,5 +1,5 @@
 output "website_url" {
-  value = "http://${aws_s3_bucket.website.bucket}.s3-website-${var.region}.amazonaws.com/"
+  value = "http://${module.s3_website.website_bucket_name}.s3-website-${var.region}.amazonaws.com/"
 }
 
 output "api_endpoint" {
